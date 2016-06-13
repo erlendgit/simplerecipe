@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * Implement hook_schema
+ * 
+ * @return array
+ */
+function simplerecipe_schema() {
+  return array(
+      'simplerecipe_recipes' => array(
+      'description' => 'Collection of submitted recipes',
+      'fields' => array(
+        'id' => array(
+          'type' => 'serial',
+        ),
+        'created' => array(
+          'type' => 'int',
+          'size' => 'big',
+          'not null' => TRUE,
+        ),
+        'langcode' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => TRUE,
+        ),
+        'title' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'author_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'author_mail' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'recipe_description' => array(
+          'type' => 'text',
+          'not null' => TRUE,
+        ),
+        'recipe_instructions' => array(
+          'type' => 'text',
+          'not null' => TRUE,
+        ),
+        'recipe_ingredients' => array(
+          'type' => 'text',
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('id'),
+    ),
+  );
+}
+
+function simplerecipe_uninstall() {
+  variable_del('simplerecipe_mail');
+}

@@ -1,0 +1,161 @@
+<?php
+
+require_once dirname(__FILE__) . '/autoload.php';
+
+use Drupal\simplerecipe\Recipe\Recipe;
+use Drupal\simplerecipe\Stub;
+
+/**
+ * Implement hook_boot()
+ */
+function simplerecipe_boot() {
+  Stub::initStub();
+}
+
+/**
+ * Implement hook_menu()
+ */
+function simplerecipe_menu() {
+  return array(
+    'recipe/add' => array(
+      'title' => t('Submit a recipe'),
+      'access arguments' => array('recipe_add'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('recipe_add_form'),
+      'file' => 'includes/pages/recipe.add.inc',
+    ),
+    'recipe/%recipe_item' => array(
+      'title' => t('Recipe details'),
+      'access arguments' => array('recipe_manage'),
+      'page callback' => 'recipe_view',
+      'page arguments' => array(1),
+      'file' => 'includes/pages/recipe.view.inc',
+    ),
+    'admin/config/system/recipe' => array(
+      'title' => t('Manage recipe settings'),
+      'access arguments' => array('recipe_manage'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('recipe_settings_form'),
+      'file' => 'includes/pages/recipe.admin.inc',
+    )
+  );
+}
+
+/**
+ * Allow recipe loading from the menu system
+ */
+function recipe_item_load($id) {
+  if ($id) {
+    try {
+      return Recipe::load($id);
+    } catch (Exception $ex) {
+      
+    }
+  }
+}
+
+function recipe_item_url(Recipe $recipe, $options = array()) {
+  $url = 'recipe/' . $recipe->id;
+  
+  $list = language_list();
+  if (!empty($list[$recipe->langcode])) {
+    $options['language'] = $list[$recipe->langcode];
+  }
+  
+  return url($url, $options);
+}
+
+
+/**
+ * Implement hook_permission()
+ */
+function simplerecipe_permission() {
+  return array(
+    'recipe_add' => array(
+      'title' => t('Recipe add'),
+      'description' => t('Access the form to create recipes'),
+    ),
+    'recipe_manage' => array(
+      'title' => t('Recipe manage'),
+      'description' => t('Access administrative recipe pages'),
+    ),
+  );
+}
+
+/**
+ * Implement hook_theme()
+ */
+function simplerecipe_theme() {
+  return array(
+    'recipe' => array(
+      'template' => 'includes/templates/recipe',
+      'arguments' => array(
+        'recipe' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implement hook_preprocess_THEME()
+ */
+function simplerecipe_preprocess_recipe(&$variables) {
+  $recipe = $variables['recipe'];
+  if (empty($recipe) || !($recipe instanceof Recipe)) {
+    return;
+  }
+
+  $list = language_list();
+
+  $variables['language'] = $list[$recipe->langcode];
+  $variables['created'] = format_date($recipe->created, 'long');
+  $variables['author_name'] = check_plain($recipe->author_name);
+  $variables['author_mail'] = check_plain($recipe->author_mail);
+  $variables['recipe_description'] = check_markup($recipe->recipe_description, 'plain_text');
+  $variables['recipe_instructions'] = check_markup($recipe->recipe_instructions, 'plain_text');
+  $variables['recipe_ingredients'] = check_markup($recipe->recipe_ingredients, 'plain_text');
+}
+
+/**
+ * Implement hook_mail()
+ */
+function simplerecipe_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'new_recipe':
+      module_load_include('inc', 'simplerecipe', 'includes/mail/new_recipe');
+      simplerecipe_mail_new_recipe($message, $params);
+      break;
+    default:
+      break;
+  }
+}
+
+/**
+ * Implement hook_variable_info()
+ */
+function simplerecipe_variable_info() {
+  return array(
+    'simplerecipe_mail' => array(
+      'title' => t('New recipe mail'),
+      'description' => t('Receipient e-mail address for new recipes'),
+      'type' => 'string',
+      'token' => TRUE,
+      'access' => 'recipe_manage',
+      'group' => 'simplerecipe',
+    ),
+  );
+}
+
+/**
+ * Implement hook_variable_group_info()
+ */
+function simplerecipe_variable_group_info() {
+  return array(
+    'simplerecipe' => array(
+      'title' => t('Simplerecipe'),
+      'description' => t('Simplerecipe variables'),
+      'access' => 'recipe_manage',
+      'path' => array('admin/config/system/recipe'),
+    )
+  );
+}
