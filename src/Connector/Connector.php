@@ -11,7 +11,7 @@ class Connector {
 
   /**
    * 
-   * @return RecipeConnector
+   * @return Connector
    */
   public static function c() {
     if (!(self::$instance instanceof Connector)) {
