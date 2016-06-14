@@ -5,7 +5,7 @@ Simple is the masquerade to hide the intensions.
 === What to expect as administrators ===
 
 - Let staff members get notified when a recipe is submitted
-- module i18n_variable support for seperate e-mail addresses for the language in which te recipe is added
+- module i18n_variable support for alternative e-mail addresses for the language in which te recipe is added
 
 === What to expect as staff member ===
 
